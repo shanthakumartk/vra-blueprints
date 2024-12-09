@@ -1,5 +1,5 @@
-name: Multi Machine Blueprint
-description: Multi Machine with NSX On Demand Provisioning
+name: VM Provisioning with NSX Network
+description: VM Provisioning with NSX Network - Multi Machine - Optional Secondary NW
 formatVersion: 1
 # Inputs Section
 inputs:
