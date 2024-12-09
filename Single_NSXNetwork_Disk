@@ -1,11 +1,11 @@
 # vRA Blueprint Created for Customer Profile
-# Blueprint can be used to deploy VMs based on the user inputs with Single Machine
+# Blueprint can be used to deploy VMs based on the user inputs with a Single Machine
 # VM can be attached to NSX Network & Storage
 
 # Author: Shanthakumar K
 
 name: Multi Machine Blueprint
-description: Multi Machine with NSX On Demand Provisioning
+description: Multi Machine with NSX On-Demand Provisioning
 formatVersion: 1
 # Inputs Section - All the user Inputs are taken from the below section
 inputs:
