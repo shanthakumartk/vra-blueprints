@@ -1,5 +1,5 @@
 name: Multi Machine Blueprint
-description: Multi Machine with NSX On Demand Provisioning
+description: Multi Machine with NSX On-Demand Provisioning
 formatVersion: 1
 # Inputs Section
 inputs:
