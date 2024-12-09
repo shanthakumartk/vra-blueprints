@@ -1,0 +1,98 @@
+# vRA Blueprint Created for Customer Profile
+# Blueprint can be used to deploy VMs based on the user inputs with Single Machine
+# VM can be attached to NSX Network & Storage
+
+# Author: Shanthakumar K
+
+name: Multi Machine Blueprint
+description: Multi Machine with NSX On Demand Provisioning
+formatVersion: 1
+# Inputs Section - All the user Inputs are taken from the below section
+inputs:
+  image:
+    type: string
+    enum:
+      - ubuntu-scale
+      - ubuntu-stress
+      - windows
+    description: Image to be used for provisioning
+    title: Image/OS
+    default: ubuntu-scale
+  flavor:
+    type: string
+    enum:
+      - small
+      - medium
+      - large
+      - xlarge
+    description: Size of the VM
+    title: Flavor
+    default: small
+  networktype:
+    type: string
+    enum:
+      - existing
+      - routed
+      - private
+      - public
+    title: Network Type
+    description: Network type information
+    default: routed
+  networktag:
+    type: string
+    enum:
+      - nsx-ondemand
+      - nsx-existing
+    title: Network Tag
+    description: Network tag associated with network
+    default: nsx-ondemand
+  totalvm:
+    type: integer
+    title: Number of VMs
+    description: Total number of VMs for deployment
+    default: 1
+    maximum: 100
+  disk_size:
+    type: integer
+    title: Disk Size (GB)
+    description: Size of the disk for each VM
+    default: 2
+    minimum: 2
+    maximum: 50
+  deployment_name:
+    type: string
+    title: VM Deployment Name
+    description: Name of the VM to be used for the VM deployment
+    default: testVM
+# Resources Section
+resources:
+#Network
+  NSXNetwork:
+    type: Cloud.NSX.Network
+    properties:
+      networkType: ${input.networktype}
+      constraints:
+        - tag: ${input.networktag}
+# Storage
+  vSANDisk:
+    type: Cloud.vSphere.Disk
+    properties:
+      capacityGb: ${input.disk_size}
+      count: ${input.totalvm}
+# Compute
+  vSphereVM:
+    type: Cloud.vSphere.Machine
+    allocatePerInstance: true
+    properties:
+      image: ${input.image}
+      flavor: ${input.flavor}
+      name: ${input.deployment_name}
+      count: ${input.totalvm}
+      networks:
+        - network: ${resource.NSXNetwork.id}
+      attachedDisks: ${map_to_object(slice(resource.vSANDisk[*].id, count.index, count.index + 1), "source")}
+      customizationSpec:
+          hostname: VM-${resource.vSphereVM.name}
+          domain: vsphere.local
+          user: user
+          password: Password123!
