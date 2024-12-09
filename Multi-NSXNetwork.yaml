@@ -1,0 +1,91 @@
+name: Multi Machine Blueprint
+description: Multi Machine with NSX On Demand Provisioning
+formatVersion: 1
+# Inputs Section
+inputs:
+  image:
+    type: string
+    enum:
+      - ubuntu-scale
+      - ubuntu-stress
+      - windows
+    description: Image to be used for provisioning
+    title: Image/OS
+    default: ubuntu-scale
+  flavor:
+    type: string
+    enum:
+      - small
+      - medium
+      - large
+      - xlarge
+    description: Size of the VM
+    title: Flavor
+    default: small
+  networktype:
+    type: string
+    enum:
+      - existing
+      - routed
+      - private
+      - public
+    title: Network Type
+    description: Network type information
+    default: routed
+  networktag:
+    type: string
+    enum:
+      - nsx-ondemand
+      - nsx-existing
+    title: Network Tag
+    description: Network tag associated with network
+    default: nsx-ondemand
+  totalvm:
+    type: integer
+    title: Number of VMs
+    description: Total number of VMs for deployment
+    default: 1
+    maximum: 100
+  extraNIC:
+    type: boolean
+    title: Secondary NIC to VM ?
+    description: Attach secondary NIC to VM
+    default: false
+  deployment_name:
+    type: string
+    title: VM Deployment Name
+    description: Name of the VM to be used for the VM deployment
+    default: testVM
+# Resources Section 
+resources:
+# Network Resource allocation 
+# Multiple Network with option to choose the second Network
+  NSXNetwork1:
+    type: Cloud.NSX.Network
+    properties:
+      networkType: ${input.networktype}
+      constraints:
+        - tag: ${input.networktag}
+  NSXNetwork2_External:
+    type: Cloud.NSX.Network
+    properties:
+      networkType: ${input.networktype}
+      count: '${input.extraNIC == true ? 1 : 0}'
+      constraints:
+        - tag: ${input.networktag}
+# Compute
+  vSphereVM:
+    type: Cloud.vSphere.Machine
+    allocatePerInstance: true
+    customizationSpec:
+      hostname: VM-${resource.Cloud_vSphere_Machines.name}
+      domain: example.com
+      user: user1
+      password: password123
+    properties:
+      image: ${input.image}
+      flavor: ${input.flavor}
+      name: ${input.deployment_name}
+      count: ${input.totalvm}
+      networks: ${map_by(resource.NSXNetwork1[*].* + resource.NSXNetwork2_External[*].*, net => {"network":net.id, "deviceIndex":net.deviceIndex})}
+      attachedDisks: []
